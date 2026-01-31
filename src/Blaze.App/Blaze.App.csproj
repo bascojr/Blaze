@@ -6,7 +6,6 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <ApplicationIcon>Assets\blaze.ico</ApplicationIcon>
     <RootNamespace>Blaze.App</RootNamespace>
     <AssemblyName>Blaze</AssemblyName>
   </PropertyGroup>
