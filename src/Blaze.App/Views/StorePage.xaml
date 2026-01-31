@@ -34,17 +34,24 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <!-- App Image Placeholder -->
+                                <!-- App Image/Icon -->
                                 <Border Grid.Row="0"
                                         Background="{StaticResource BackgroundMediumBrush}"
                                         CornerRadius="4,4,0,0">
-                                    <TextBlock Text="{Binding Name}"
-                                               FontSize="24"
-                                               FontWeight="Bold"
-                                               Foreground="{StaticResource TextPrimaryBrush}"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"
-                                               TextTrimming="CharacterEllipsis"/>
+                                    <Grid>
+                                        <!-- Icon Image (shown when IconUrl exists) -->
+                                        <Image Source="{Binding IconUrl}"
+                                               Stretch="UniformToFill"
+                                               Visibility="{Binding IconUrl, Converter={StaticResource PathToVisibilityConverter}}"/>
+                                        <!-- Fallback: First Letter (shown when no icon) -->
+                                        <TextBlock Text="{Binding Name, Converter={StaticResource FirstLetterConverter}}"
+                                                   FontSize="48"
+                                                   FontWeight="Bold"
+                                                   Foreground="{StaticResource AccentSecondaryBrush}"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   Visibility="{Binding IconUrl, Converter={StaticResource InversePathToVisibilityConverter}}"/>
+                                    </Grid>
                                 </Border>
 
                                 <!-- App Name -->
@@ -117,12 +124,18 @@
                                 <Border Grid.Row="0"
                                         Background="{StaticResource BackgroundMediumBrush}"
                                         CornerRadius="4,4,0,0">
-                                    <TextBlock Text="{Binding Name, Converter={StaticResource FirstLetterConverter}}"
-                                               FontSize="48"
-                                               FontWeight="Bold"
-                                               Foreground="{StaticResource AccentSecondaryBrush}"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"/>
+                                    <Grid>
+                                        <Image Source="{Binding IconUrl}"
+                                               Stretch="UniformToFill"
+                                               Visibility="{Binding IconUrl, Converter={StaticResource PathToVisibilityConverter}}"/>
+                                        <TextBlock Text="{Binding Name, Converter={StaticResource FirstLetterConverter}}"
+                                                   FontSize="48"
+                                                   FontWeight="Bold"
+                                                   Foreground="{StaticResource AccentSecondaryBrush}"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   Visibility="{Binding IconUrl, Converter={StaticResource InversePathToVisibilityConverter}}"/>
+                                    </Grid>
                                 </Border>
 
                                 <TextBlock Grid.Row="1"
@@ -208,12 +221,18 @@
                                 <Border Grid.Row="0"
                                         Background="{StaticResource BackgroundMediumBrush}"
                                         CornerRadius="4,4,0,0">
-                                    <TextBlock Text="{Binding Name, Converter={StaticResource FirstLetterConverter}}"
-                                               FontSize="48"
-                                               FontWeight="Bold"
-                                               Foreground="{StaticResource AccentSecondaryBrush}"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"/>
+                                    <Grid>
+                                        <Image Source="{Binding IconUrl}"
+                                               Stretch="UniformToFill"
+                                               Visibility="{Binding IconUrl, Converter={StaticResource PathToVisibilityConverter}}"/>
+                                        <TextBlock Text="{Binding Name, Converter={StaticResource FirstLetterConverter}}"
+                                                   FontSize="48"
+                                                   FontWeight="Bold"
+                                                   Foreground="{StaticResource AccentSecondaryBrush}"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   Visibility="{Binding IconUrl, Converter={StaticResource InversePathToVisibilityConverter}}"/>
+                                    </Grid>
                                 </Border>
 
                                 <TextBlock Grid.Row="1"

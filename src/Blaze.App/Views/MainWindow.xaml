@@ -32,6 +32,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- Logo -->
@@ -65,8 +66,17 @@
                                Margin="0,0,20,0"/>
                 </StackPanel>
 
+                <!-- Admin Backoffice Button -->
+                <Button Grid.Column="3"
+                        Content="Backoffice"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Padding="12,6"
+                        Margin="0,0,12,0"
+                        Click="OpenBackoffice_Click"
+                        Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
                 <!-- User Profile -->
-                <Border Grid.Column="3"
+                <Border Grid.Column="4"
                         Background="{StaticResource SurfaceBrush}"
                         CornerRadius="4"
                         Padding="12,6"

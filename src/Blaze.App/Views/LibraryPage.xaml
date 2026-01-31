@@ -122,12 +122,18 @@
                                             Background="{StaticResource BackgroundMediumBrush}"
                                             CornerRadius="4,4,0,0">
                                         <Grid>
+                                            <!-- Icon Image (shown when IconPath exists) -->
+                                            <Image Source="{Binding IconPath}"
+                                                   Stretch="UniformToFill"
+                                                   Visibility="{Binding IconPath, Converter={StaticResource PathToVisibilityConverter}}"/>
+                                            <!-- Fallback: First Letter (shown when no icon) -->
                                             <TextBlock Text="{Binding Name, Converter={StaticResource FirstLetterConverter}}"
                                                        FontSize="36"
                                                        FontWeight="Bold"
                                                        Foreground="{StaticResource AccentSecondaryBrush}"
                                                        HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center"/>
+                                                       VerticalAlignment="Center"
+                                                       Visibility="{Binding IconPath, Converter={StaticResource InversePathToVisibilityConverter}}"/>
 
                                             <!-- Running Indicator -->
                                             <Border Background="{StaticResource SuccessBrush}"
@@ -222,12 +228,18 @@
                                             Width="40" Height="40"
                                             Background="{StaticResource BackgroundMediumBrush}"
                                             CornerRadius="4">
-                                        <TextBlock Text="{Binding Name, Converter={StaticResource FirstLetterConverter}}"
-                                                   FontSize="18"
-                                                   FontWeight="Bold"
-                                                   Foreground="{StaticResource AccentSecondaryBrush}"
-                                                   HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center"/>
+                                        <Grid>
+                                            <Image Source="{Binding IconPath}"
+                                                   Stretch="UniformToFill"
+                                                   Visibility="{Binding IconPath, Converter={StaticResource PathToVisibilityConverter}}"/>
+                                            <TextBlock Text="{Binding Name, Converter={StaticResource FirstLetterConverter}}"
+                                                       FontSize="18"
+                                                       FontWeight="Bold"
+                                                       Foreground="{StaticResource AccentSecondaryBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"
+                                                       Visibility="{Binding IconPath, Converter={StaticResource InversePathToVisibilityConverter}}"/>
+                                        </Grid>
                                     </Border>
 
                                     <!-- Info -->

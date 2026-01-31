@@ -32,6 +32,7 @@ public interface IAppService
     Task<IEnumerable<AppUpdate>> CheckForUpdatesAsync();
     Task<bool> UpdateAppAsync(string appId);
     Task<bool> UpdateAllAppsAsync();
+    Task<bool> UpdateInstalledAppVersionAsync(string appId, string newVersion);
 
     // Favorites and wishlist
     Task AddToFavoritesAsync(string appId);
@@ -44,4 +45,15 @@ public interface IAppService
     // Reviews
     Task<IEnumerable<Review>> GetAppReviewsAsync(string appId);
     Task<bool> SubmitReviewAsync(Review review);
+
+    // Admin CRUD operations
+    Task<Application> CreateAppAsync(Application app);
+    Task<bool> UpdateAppMetadataAsync(Application app);
+    Task<bool> DeleteAppAsync(string appId);
+
+    // File management
+    Task<string> SavePackageFileAsync(string appId, string filePath);
+    Task<string> SaveIconAsync(string appId, string filePath);
+    Task<List<string>> SaveScreenshotsAsync(string appId, IEnumerable<string> filePaths);
+    Task<bool> DeleteAppFilesAsync(string appId);
 }

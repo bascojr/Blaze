@@ -26,7 +26,16 @@ public partial class AppDetailViewModel : ViewModelBase
     private bool _isInstalled;
 
     [ObservableProperty]
+    private bool _hasUpdate;
+
+    [ObservableProperty]
+    private string _installedVersion = string.Empty;
+
+    [ObservableProperty]
     private bool _isDownloading;
+
+    [ObservableProperty]
+    private bool _isUpdating;
 
     [ObservableProperty]
     private double _downloadProgress;
@@ -65,9 +74,21 @@ public partial class AppDetailViewModel : ViewModelBase
             App = await _appService.GetAppByIdAsync(appId);
             if (App == null) return;
 
-            // Check if installed
+            // Check if installed and if update is available
             InstalledApp = await _appService.GetInstalledAppAsync(appId);
             IsInstalled = InstalledApp != null;
+
+            if (InstalledApp != null)
+            {
+                InstalledVersion = InstalledApp.InstalledVersion;
+                // Compare versions - update available if store version is higher
+                HasUpdate = CompareVersions(App.Version, InstalledApp.InstalledVersion) > 0;
+            }
+            else
+            {
+                InstalledVersion = string.Empty;
+                HasUpdate = false;
+            }
 
             // Load reviews
             var reviews = await _appService.GetAppReviewsAsync(appId);
@@ -131,8 +152,37 @@ public partial class AppDetailViewModel : ViewModelBase
     [RelayCommand]
     private async Task Update()
     {
-        if (App == null) return;
-        await _appService.UpdateAppAsync(App.Id);
+        if (App == null || InstalledApp == null) return;
+
+        var settings = await _settingsService.GetDownloadSettingsAsync();
+        var installPath = InstalledApp.InstallPath;
+
+        IsUpdating = true;
+        IsDownloading = true;
+        DownloadStatus = "Starting update...";
+
+        // Queue download for the new version
+        await _downloadService.QueueDownloadAsync(App, installPath);
+    }
+
+    /// <summary>
+    /// Compares two version strings. Returns > 0 if v1 > v2, 0 if equal, < 0 if v1 < v2
+    /// </summary>
+    private static int CompareVersions(string v1, string v2)
+    {
+        if (string.IsNullOrEmpty(v1) && string.IsNullOrEmpty(v2)) return 0;
+        if (string.IsNullOrEmpty(v1)) return -1;
+        if (string.IsNullOrEmpty(v2)) return 1;
+
+        // Try to parse as Version objects
+        if (Version.TryParse(v1.TrimStart('v', 'V'), out var version1) &&
+            Version.TryParse(v2.TrimStart('v', 'V'), out var version2))
+        {
+            return version1.CompareTo(version2);
+        }
+
+        // Fallback to string comparison
+        return string.Compare(v1, v2, StringComparison.OrdinalIgnoreCase);
     }
 
     [RelayCommand]
@@ -202,14 +252,29 @@ public partial class AppDetailViewModel : ViewModelBase
 
             if (e.Success)
             {
-                // Register as installed
-                await _appService.InstallAppAsync(App, e.Download.DestinationPath);
-                IsInstalled = true;
-                InstalledApp = await _appService.GetInstalledAppAsync(App.Id);
-                DownloadStatus = "Installation complete!";
+                if (IsUpdating)
+                {
+                    // Update the installed app record with new version
+                    await _appService.UpdateInstalledAppVersionAsync(App.Id, App.Version);
+                    InstalledApp = await _appService.GetInstalledAppAsync(App.Id);
+                    InstalledVersion = App.Version;
+                    HasUpdate = false;
+                    IsUpdating = false;
+                    DownloadStatus = "Update complete!";
+                }
+                else
+                {
+                    // Register as newly installed
+                    await _appService.InstallAppAsync(App, e.Download.DestinationPath);
+                    IsInstalled = true;
+                    InstalledApp = await _appService.GetInstalledAppAsync(App.Id);
+                    InstalledVersion = App.Version;
+                    DownloadStatus = "Installation complete!";
+                }
             }
             else
             {
+                IsUpdating = false;
                 DownloadStatus = $"Download failed: {e.ErrorMessage}";
             }
         }

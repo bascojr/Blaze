@@ -69,12 +69,17 @@ public partial class LibraryPage : Page
     {
         if (sender is Button button)
         {
-            var contextMenu = new ContextMenu
+            var menuStyle = TryFindResource("BlazeMenuItemStyle") as Style;
+            var separatorStyle = TryFindResource("BlazeMenuSeparatorStyle") as Style;
+
+            var contextMenu = new ContextMenu();
+            if (TryFindResource("BlazeContextMenuStyle") is Style contextMenuStyle)
             {
-                Style = (Style)FindResource("BlazeContextMenuStyle")
-            };
+                contextMenu.Style = contextMenuStyle;
+            }
 
             var uninstallItem = new MenuItem { Header = "Uninstall" };
+            if (menuStyle != null) uninstallItem.Style = menuStyle;
             uninstallItem.Click += async (s, args) =>
             {
                 if (button.Tag is string appId)
@@ -88,6 +93,7 @@ public partial class LibraryPage : Page
             };
 
             var favoriteItem = new MenuItem { Header = "Toggle Favorite" };
+            if (menuStyle != null) favoriteItem.Style = menuStyle;
             favoriteItem.Click += async (s, args) =>
             {
                 if (button.Tag is string appId)
@@ -100,8 +106,11 @@ public partial class LibraryPage : Page
                 }
             };
 
+            var separator = new Separator();
+            if (separatorStyle != null) separator.Style = separatorStyle;
+
             contextMenu.Items.Add(favoriteItem);
-            contextMenu.Items.Add(new Separator());
+            contextMenu.Items.Add(separator);
             contextMenu.Items.Add(uninstallItem);
 
             contextMenu.PlacementTarget = button;

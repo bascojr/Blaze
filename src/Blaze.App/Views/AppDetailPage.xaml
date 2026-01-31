@@ -37,12 +37,18 @@
                         Width="180" Height="180"
                         Background="{StaticResource BackgroundMediumBrush}"
                         CornerRadius="8">
-                    <TextBlock Text="{Binding App.Name, Converter={StaticResource FirstLetterConverter}}"
-                               FontSize="72"
-                               FontWeight="Bold"
-                               Foreground="{StaticResource AccentSecondaryBrush}"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"/>
+                    <Grid>
+                        <Image Source="{Binding App.IconUrl}"
+                               Stretch="UniformToFill"
+                               Visibility="{Binding App.IconUrl, Converter={StaticResource PathToVisibilityConverter}}"/>
+                        <TextBlock Text="{Binding App.Name, Converter={StaticResource FirstLetterConverter}}"
+                                   FontSize="72"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource AccentSecondaryBrush}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Visibility="{Binding App.IconUrl, Converter={StaticResource InversePathToVisibilityConverter}}"/>
+                    </Grid>
                 </Border>
 
                 <!-- App Info -->
@@ -117,12 +123,44 @@
                                HorizontalAlignment="Center"
                                Margin="0,0,0,16"/>
 
-                    <!-- Install/Launch Button -->
-                    <Button x:Name="MainActionButton"
+                    <!-- Version Info (shown when installed) -->
+                    <StackPanel x:Name="VersionInfoPanel" Visibility="Collapsed" Margin="0,0,0,12">
+                        <TextBlock x:Name="InstalledVersionText"
+                                   Foreground="{StaticResource TextMutedBrush}"
+                                   FontSize="12"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="UpdateAvailableText"
+                                   Text="New version available!"
+                                   Foreground="{StaticResource AccentSecondaryBrush}"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"
+                                   HorizontalAlignment="Center"
+                                   Visibility="Collapsed"
+                                   Margin="0,4,0,0"/>
+                    </StackPanel>
+
+                    <!-- Install Button (not installed) -->
+                    <Button x:Name="InstallButton"
                             Content="Install"
                             Style="{StaticResource InstallButtonStyle}"
                             Width="200"
-                            Click="MainAction_Click"/>
+                            Click="Install_Click"/>
+
+                    <!-- Launch Button (installed, no update) -->
+                    <Button x:Name="LaunchButton"
+                            Content="Launch"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Width="200"
+                            Visibility="Collapsed"
+                            Click="Launch_Click"/>
+
+                    <!-- Update Button (installed with update available) -->
+                    <Button x:Name="UpdateButton"
+                            Content="Update"
+                            Style="{StaticResource InstallButtonStyle}"
+                            Width="200"
+                            Visibility="Collapsed"
+                            Click="Update_Click"/>
 
                     <!-- Download Progress -->
                     <StackPanel x:Name="DownloadProgressPanel" Visibility="Collapsed" Margin="0,16,0,0">
@@ -147,12 +185,25 @@
 
                     <!-- Secondary Actions -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,12,0,0">
+                        <Button x:Name="LaunchSmallButton"
+                                Content="Launch"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Padding="16,8"
+                                Margin="0,0,8,0"
+                                Visibility="Collapsed"
+                                Click="Launch_Click"/>
                         <Button x:Name="WishlistButton"
                                 Content="Wishlist"
                                 Style="{StaticResource SecondaryButtonStyle}"
                                 Padding="16,8"
                                 Margin="0,0,8,0"
                                 Click="ToggleWishlist_Click"/>
+                        <Button x:Name="UninstallButton"
+                                Content="Uninstall"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Padding="16,8"
+                                Visibility="Collapsed"
+                                Click="Uninstall_Click"/>
                     </StackPanel>
                 </StackPanel>
             </Grid>
@@ -280,12 +331,18 @@
                                         <Border Grid.Row="0"
                                                 Background="{StaticResource BackgroundMediumBrush}"
                                                 CornerRadius="4,4,0,0">
-                                            <TextBlock Text="{Binding Name, Converter={StaticResource FirstLetterConverter}}"
-                                                       FontSize="32"
-                                                       FontWeight="Bold"
-                                                       Foreground="{StaticResource AccentSecondaryBrush}"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center"/>
+                                            <Grid>
+                                                <Image Source="{Binding IconUrl}"
+                                                       Stretch="UniformToFill"
+                                                       Visibility="{Binding IconUrl, Converter={StaticResource PathToVisibilityConverter}}"/>
+                                                <TextBlock Text="{Binding Name, Converter={StaticResource FirstLetterConverter}}"
+                                                           FontSize="32"
+                                                           FontWeight="Bold"
+                                                           Foreground="{StaticResource AccentSecondaryBrush}"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"
+                                                           Visibility="{Binding IconUrl, Converter={StaticResource InversePathToVisibilityConverter}}"/>
+                                            </Grid>
                                         </Border>
 
                                         <TextBlock Grid.Row="1"

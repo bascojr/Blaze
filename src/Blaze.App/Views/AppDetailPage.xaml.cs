@@ -45,6 +45,8 @@ public partial class AppDetailPage : Page
             {
                 case nameof(_viewModel.IsInstalled):
                 case nameof(_viewModel.IsDownloading):
+                case nameof(_viewModel.HasUpdate):
+                case nameof(_viewModel.IsUpdating):
                     UpdateUI();
                     break;
                 case nameof(_viewModel.DownloadProgress):
@@ -59,40 +61,88 @@ public partial class AppDetailPage : Page
 
     private void UpdateUI()
     {
+        // Handle downloading state
         if (_viewModel.IsDownloading)
         {
-            MainActionButton.Visibility = Visibility.Collapsed;
+            InstallButton.Visibility = Visibility.Collapsed;
+            LaunchButton.Visibility = Visibility.Collapsed;
+            UpdateButton.Visibility = Visibility.Collapsed;
             DownloadProgressPanel.Visibility = Visibility.Visible;
+            LaunchSmallButton.Visibility = Visibility.Collapsed;
+            UninstallButton.Visibility = Visibility.Collapsed;
         }
         else
         {
-            MainActionButton.Visibility = Visibility.Visible;
             DownloadProgressPanel.Visibility = Visibility.Collapsed;
 
             if (_viewModel.IsInstalled)
             {
-                MainActionButton.Content = "Launch";
-                MainActionButton.Style = (Style)FindResource("PrimaryButtonStyle");
+                // App is installed
+                InstallButton.Visibility = Visibility.Collapsed;
+                VersionInfoPanel.Visibility = Visibility.Visible;
+                InstalledVersionText.Text = $"Installed: v{_viewModel.InstalledVersion}";
+                UninstallButton.Visibility = Visibility.Visible;
+
+                if (_viewModel.HasUpdate)
+                {
+                    // Update available
+                    LaunchButton.Visibility = Visibility.Collapsed;
+                    UpdateButton.Visibility = Visibility.Visible;
+                    UpdateAvailableText.Visibility = Visibility.Visible;
+                    UpdateAvailableText.Text = $"Update available: v{_viewModel.App?.Version}";
+                    LaunchSmallButton.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    // No update, show launch as main button
+                    LaunchButton.Visibility = Visibility.Visible;
+                    UpdateButton.Visibility = Visibility.Collapsed;
+                    UpdateAvailableText.Visibility = Visibility.Collapsed;
+                    LaunchSmallButton.Visibility = Visibility.Collapsed;
+                }
             }
             else
             {
-                MainActionButton.Content = "Install";
-                MainActionButton.Style = (Style)FindResource("InstallButtonStyle");
+                // App not installed
+                InstallButton.Visibility = Visibility.Visible;
+                LaunchButton.Visibility = Visibility.Collapsed;
+                UpdateButton.Visibility = Visibility.Collapsed;
+                VersionInfoPanel.Visibility = Visibility.Collapsed;
+                LaunchSmallButton.Visibility = Visibility.Collapsed;
+                UninstallButton.Visibility = Visibility.Collapsed;
             }
         }
 
         WishlistButton.Content = _viewModel.IsInWishlist ? "In Wishlist" : "Add to Wishlist";
     }
 
-    private async void MainAction_Click(object sender, RoutedEventArgs e)
+    private async void Install_Click(object sender, RoutedEventArgs e)
     {
-        if (_viewModel.IsInstalled)
+        await _viewModel.InstallCommand.ExecuteAsync(null);
+    }
+
+    private async void Launch_Click(object sender, RoutedEventArgs e)
+    {
+        await _viewModel.LaunchCommand.ExecuteAsync(null);
+    }
+
+    private async void Update_Click(object sender, RoutedEventArgs e)
+    {
+        await _viewModel.UpdateCommand.ExecuteAsync(null);
+    }
+
+    private async void Uninstall_Click(object sender, RoutedEventArgs e)
+    {
+        var result = MessageBox.Show(
+            $"Are you sure you want to uninstall {_viewModel.App?.Name}?",
+            "Uninstall Application",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+
+        if (result == MessageBoxResult.Yes)
         {
-            await _viewModel.LaunchCommand.ExecuteAsync(null);
-        }
-        else
-        {
-            await _viewModel.InstallCommand.ExecuteAsync(null);
+            await _viewModel.UninstallCommand.ExecuteAsync(null);
+            UpdateUI();
         }
     }
 

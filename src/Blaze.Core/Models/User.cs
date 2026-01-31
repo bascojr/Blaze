@@ -15,6 +15,8 @@ public class User
 
     public string Email { get; set; } = string.Empty;
 
+    public string PasswordHash { get; set; } = string.Empty;
+
     public string DisplayName { get; set; } = string.Empty;
 
     public string AvatarUrl { get; set; } = string.Empty;
@@ -32,6 +34,8 @@ public class User
     public List<string> FavoriteAppIds { get; set; } = new();
 
     public bool IsOnline { get; set; } = true;
+
+    public bool IsAdmin { get; set; } = false;
 
     public UserStatus Status { get; set; } = UserStatus.Online;
 

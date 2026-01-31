@@ -136,7 +136,7 @@ public class AppService : IAppService
                 ExecutablePath = Path.Combine(installPath, app.ExecutablePath),
                 InstalledSizeBytes = app.SizeInBytes,
                 InstalledAt = DateTime.Now,
-                IconPath = Path.Combine(installPath, "icon.ico")
+                IconPath = !string.IsNullOrEmpty(app.IconUrl) ? app.IconUrl : Path.Combine(installPath, "icon.ico")
             };
 
             await _context.InstalledApps.AddAsync(installedApp);
@@ -378,6 +378,35 @@ public class AppService : IAppService
         return true;
     }
 
+    public async Task<bool> UpdateInstalledAppVersionAsync(string appId, string newVersion)
+    {
+        try
+        {
+            var installedApp = await _context.InstalledApps
+                .FirstOrDefaultAsync(a => a.ApplicationId == appId);
+
+            if (installedApp == null)
+            {
+                _logger.LogWarning("Installed app {AppId} not found for version update", appId);
+                return false;
+            }
+
+            installedApp.InstalledVersion = newVersion;
+            installedApp.LatestVersion = newVersion;
+            installedApp.LastUpdatedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Updated installed app {AppId} to version {Version}", appId, newVersion);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update installed app version for {AppId}", appId);
+            return false;
+        }
+    }
+
     #endregion
 
     #region Favorites and Wishlist
@@ -480,6 +509,202 @@ public class AppService : IAppService
         {
             _logger.LogError(ex, "Failed to submit review");
             return false;
+        }
+    }
+
+    #endregion
+
+    #region Admin CRUD Operations
+
+    public async Task<Application> CreateAppAsync(Application app)
+    {
+        try
+        {
+            app.Id = Guid.NewGuid().ToString();
+            app.ReleaseDate = DateTime.Now;
+            app.LastUpdated = DateTime.Now;
+
+            await _context.Applications.AddAsync(app);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Application {AppName} created with ID {AppId}", app.Name, app.Id);
+            return app;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create application {AppName}", app.Name);
+            throw;
+        }
+    }
+
+    public async Task<bool> UpdateAppMetadataAsync(Application app)
+    {
+        try
+        {
+            var existing = await _context.Applications.FindAsync(app.Id);
+            if (existing == null) return false;
+
+            existing.Name = app.Name;
+            existing.Description = app.Description;
+            existing.ShortDescription = app.ShortDescription;
+            existing.Developer = app.Developer;
+            existing.Publisher = app.Publisher;
+            existing.Version = app.Version;
+            existing.Price = app.Price;
+            existing.SizeInBytes = app.SizeInBytes;
+            existing.DownloadUrl = app.DownloadUrl;
+            existing.ExecutablePath = app.ExecutablePath;
+            existing.IconUrl = app.IconUrl;
+            existing.HeaderImageUrl = app.HeaderImageUrl;
+            existing.ScreenshotUrls = app.ScreenshotUrls;
+            existing.CategoryId = app.CategoryId;
+            existing.Tags = app.Tags;
+            existing.MinimumOsVersion = app.MinimumOsVersion;
+            existing.SupportedArchitectures = app.SupportedArchitectures;
+            existing.RequiresAdmin = app.RequiresAdmin;
+            existing.Website = app.Website;
+            existing.SupportEmail = app.SupportEmail;
+            existing.LicenseType = app.LicenseType;
+            existing.LastUpdated = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Application {AppId} updated", app.Id);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update application {AppId}", app.Id);
+            return false;
+        }
+    }
+
+    public async Task<bool> DeleteAppAsync(string appId)
+    {
+        try
+        {
+            var app = await _context.Applications.FindAsync(appId);
+            if (app == null) return false;
+
+            // Remove related reviews
+            var reviews = await _context.Reviews.Where(r => r.ApplicationId == appId).ToListAsync();
+            _context.Reviews.RemoveRange(reviews);
+
+            // Remove installed app records
+            var installedApps = await _context.InstalledApps.Where(i => i.ApplicationId == appId).ToListAsync();
+            _context.InstalledApps.RemoveRange(installedApps);
+
+            // Remove the app
+            _context.Applications.Remove(app);
+            await _context.SaveChangesAsync();
+
+            // Delete associated files
+            await DeleteAppFilesAsync(appId);
+
+            _logger.LogInformation("Application {AppId} deleted", appId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete application {AppId}", appId);
+            return false;
+        }
+    }
+
+    #endregion
+
+    #region File Management
+
+    private string GetAppStoragePath(string appId)
+    {
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        return Path.Combine(appData, "Blaze", "Apps", appId);
+    }
+
+    public async Task<string> SavePackageFileAsync(string appId, string filePath)
+    {
+        var storagePath = GetAppStoragePath(appId);
+        Directory.CreateDirectory(storagePath);
+
+        var fileName = Path.GetFileName(filePath);
+        var destPath = Path.Combine(storagePath, fileName);
+
+        File.Copy(filePath, destPath, overwrite: true);
+
+        // Update app's download URL and size
+        var app = await _context.Applications.FindAsync(appId);
+        if (app != null)
+        {
+            app.DownloadUrl = destPath;
+            app.SizeInBytes = new FileInfo(destPath).Length;
+            await _context.SaveChangesAsync();
+        }
+
+        _logger.LogInformation("Package file saved for app {AppId}: {Path}", appId, destPath);
+        return destPath;
+    }
+
+    public async Task<string> SaveIconAsync(string appId, string filePath)
+    {
+        var storagePath = GetAppStoragePath(appId);
+        Directory.CreateDirectory(storagePath);
+
+        var destPath = Path.Combine(storagePath, "icon" + Path.GetExtension(filePath));
+        File.Copy(filePath, destPath, overwrite: true);
+
+        var app = await _context.Applications.FindAsync(appId);
+        if (app != null)
+        {
+            app.IconUrl = destPath;
+            await _context.SaveChangesAsync();
+        }
+
+        _logger.LogInformation("Icon saved for app {AppId}: {Path}", appId, destPath);
+        return destPath;
+    }
+
+    public async Task<List<string>> SaveScreenshotsAsync(string appId, IEnumerable<string> filePaths)
+    {
+        var storagePath = Path.Combine(GetAppStoragePath(appId), "screenshots");
+        Directory.CreateDirectory(storagePath);
+
+        var savedPaths = new List<string>();
+        int index = 1;
+
+        foreach (var filePath in filePaths)
+        {
+            var destPath = Path.Combine(storagePath, $"screenshot_{index}{Path.GetExtension(filePath)}");
+            File.Copy(filePath, destPath, overwrite: true);
+            savedPaths.Add(destPath);
+            index++;
+        }
+
+        var app = await _context.Applications.FindAsync(appId);
+        if (app != null)
+        {
+            app.ScreenshotUrls = savedPaths;
+            await _context.SaveChangesAsync();
+        }
+
+        _logger.LogInformation("Screenshots saved for app {AppId}: {Count} files", appId, savedPaths.Count);
+        return savedPaths;
+    }
+
+    public Task<bool> DeleteAppFilesAsync(string appId)
+    {
+        try
+        {
+            var storagePath = GetAppStoragePath(appId);
+            if (Directory.Exists(storagePath))
+            {
+                Directory.Delete(storagePath, recursive: true);
+                _logger.LogInformation("Deleted files for app {AppId}", appId);
+            }
+            return Task.FromResult(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete files for app {AppId}", appId);
+            return Task.FromResult(false);
         }
     }
 

@@ -55,6 +55,13 @@ public partial class MainWindow : Window
         _viewModel.CurrentView = "Settings";
     }
 
+    private void OpenBackoffice_Click(object sender, RoutedEventArgs e)
+    {
+        var backofficeWindow = new BackofficeWindow();
+        backofficeWindow.Owner = this;
+        backofficeWindow.ShowDialog();
+    }
+
     private void SearchBox_KeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Enter)

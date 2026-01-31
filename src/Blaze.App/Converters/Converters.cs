@@ -205,6 +205,26 @@ public class StringToColorConverter : IValueConverter
 }
 
 /// <summary>
+/// Converts an inverted boolean to visibility
+/// </summary>
+public class InverseBoolToVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is bool boolValue)
+        {
+            return boolValue ? Visibility.Collapsed : Visibility.Visible;
+        }
+        return Visibility.Visible;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        return value is Visibility visibility && visibility == Visibility.Collapsed;
+    }
+}
+
+/// <summary>
 /// Formats a DateTime to a relative string
 /// </summary>
 public class RelativeDateConverter : IValueConverter

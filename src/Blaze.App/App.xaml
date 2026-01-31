@@ -1,8 +1,7 @@
 <Application x:Class="Blaze.App.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:converters="clr-namespace:Blaze.App.Converters"
-             StartupUri="Views/MainWindow.xaml">
+             xmlns:converters="clr-namespace:Blaze.App.Converters">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -13,6 +12,7 @@
 
             <!-- Converters -->
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+            <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
             <converters:IntToVisibilityConverter x:Key="IntToVisibilityConverter"/>
             <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
             <converters:RatingToStarsConverter x:Key="RatingToStarsConverter"/>
@@ -26,6 +26,9 @@
             <converters:FirstLetterConverter x:Key="FirstLetterConverter"/>
             <converters:PercentToWidthConverter x:Key="PercentToWidthConverter"/>
             <converters:IntToIndexConverter x:Key="IntToIndexConverter"/>
+            <converters:BoolToSaveTextConverter x:Key="BoolToSaveTextConverter"/>
+            <converters:PathToVisibilityConverter x:Key="PathToVisibilityConverter"/>
+            <converters:InversePathToVisibilityConverter x:Key="InversePathToVisibilityConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

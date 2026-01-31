@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.IO.Compression;
 using Blaze.Core.Data;
 using Blaze.Core.Events;
 using Blaze.Core.Models;
@@ -87,12 +88,104 @@ public class DownloadService : IDownloadService
                 return;
             }
 
-            using var response = await _httpClient.GetAsync(app.DownloadUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-            response.EnsureSuccessStatusCode();
+            // Check if the download URL is a local file path or HTTP URL
+            bool isLocalFile = !app.DownloadUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase);
 
-            var totalBytes = response.Content.Headers.ContentLength ?? download.TotalBytes;
-            download.TotalBytes = totalBytes;
+            if (isLocalFile)
+            {
+                // Handle local file installation (from backoffice uploads)
+                await ExecuteLocalInstallAsync(download, app, cancellationToken);
+            }
+            else
+            {
+                // Handle HTTP download
+                await ExecuteHttpDownloadAsync(download, app, cancellationToken);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            download.Status = DownloadStatus.Paused;
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Download paused: {AppName}", download.ApplicationName);
+        }
+        catch (Exception ex)
+        {
+            await MarkDownloadFailed(download, ex.Message);
+        }
+        finally
+        {
+            _downloadTokens.TryRemove(download.Id, out _);
+            _downloadSemaphore.Release();
+        }
+    }
 
+    private async Task ExecuteLocalInstallAsync(Download download, Application app, CancellationToken cancellationToken)
+    {
+        var sourceFile = app.DownloadUrl;
+
+        if (!File.Exists(sourceFile))
+        {
+            await MarkDownloadFailed(download, $"Package file not found: {sourceFile}");
+            return;
+        }
+
+        var fileInfo = new FileInfo(sourceFile);
+        download.TotalBytes = fileInfo.Length;
+
+        DownloadProgressChanged?.Invoke(this, new DownloadProgressEventArgs(
+            download, 0, download.TotalBytes, 0));
+
+        // Copy the file to temp location first - use a block to ensure streams are disposed before moving file
+        {
+            await using var sourceStream = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 81920, true);
+            await using var tempStream = new FileStream(download.TempFilePath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
+
+            var buffer = new byte[81920]; // Larger buffer for local copies
+            var totalBytesRead = 0L;
+            var lastReportTime = DateTime.Now;
+
+            while (true)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var bytesRead = await sourceStream.ReadAsync(buffer, cancellationToken);
+                if (bytesRead == 0) break;
+
+                await tempStream.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
+
+                totalBytesRead += bytesRead;
+                download.DownloadedBytes = totalBytesRead;
+
+                // Report progress every 50ms for local copies
+                if ((DateTime.Now - lastReportTime).TotalMilliseconds >= 50)
+                {
+                    var elapsed = (DateTime.Now - lastReportTime).TotalSeconds;
+                    var speed = elapsed > 0 ? (totalBytesRead / (DateTime.Now - download.StartedAt).TotalSeconds) : 0;
+                    download.SpeedBytesPerSecond = speed;
+
+                    DownloadProgressChanged?.Invoke(this, new DownloadProgressEventArgs(
+                        download, totalBytesRead, download.TotalBytes, speed));
+
+                    await _context.SaveChangesAsync();
+                    lastReportTime = DateTime.Now;
+                }
+            }
+        } // Streams are disposed here before moving the file
+
+        // Complete the installation
+        await CompleteInstallation(download, app);
+    }
+
+    private async Task ExecuteHttpDownloadAsync(Download download, Application app, CancellationToken cancellationToken)
+    {
+        using var response = await _httpClient.GetAsync(app.DownloadUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        var totalBytes = response.Content.Headers.ContentLength ?? download.TotalBytes;
+        download.TotalBytes = totalBytes;
+
+        // Use a block to ensure streams are disposed before moving file
+        {
             await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
             await using var fileStream = new FileStream(download.TempFilePath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
 
@@ -146,45 +239,65 @@ public class DownloadService : IDownloadService
                     bytesReadSinceLastReport = 0;
                 }
             }
+        } // Streams are disposed here before moving the file
 
-            // Download complete - move to destination
-            download.Status = DownloadStatus.Installing;
-            await _context.SaveChangesAsync();
+        // Complete the installation
+        await CompleteInstallation(download, app);
+    }
 
+    private async Task CompleteInstallation(Download download, Application app)
+    {
+        download.Status = DownloadStatus.Installing;
+        await _context.SaveChangesAsync();
+
+        InstallProgressChanged?.Invoke(this, new InstallProgressEventArgs(
+            download.ApplicationId, download.ApplicationName, InstallStage.Extracting, 0, "Extracting files..."));
+
+        // Create destination directory
+        Directory.CreateDirectory(download.DestinationPath);
+
+        // Determine the source filename
+        var sourceFileName = Path.GetFileName(app.DownloadUrl);
+        if (string.IsNullOrEmpty(sourceFileName))
+        {
+            sourceFileName = Path.GetFileName(download.TempFilePath);
+        }
+
+        var extension = Path.GetExtension(sourceFileName).ToLowerInvariant();
+
+        // Check if it's a ZIP file that needs extraction
+        if (extension == ".zip")
+        {
             InstallProgressChanged?.Invoke(this, new InstallProgressEventArgs(
-                download.ApplicationId, download.ApplicationName, InstallStage.Extracting, 0, "Extracting files..."));
+                download.ApplicationId, download.ApplicationName, InstallStage.Extracting, 25, "Extracting archive..."));
 
-            // Move temp file to destination
-            Directory.CreateDirectory(download.DestinationPath);
-            var destFile = Path.Combine(download.DestinationPath, Path.GetFileName(download.TempFilePath));
+            // Extract ZIP to destination folder
+            ZipFile.ExtractToDirectory(download.TempFilePath, download.DestinationPath, overwriteFiles: true);
+
+            // Delete the temp file after extraction
+            File.Delete(download.TempFilePath);
+
+            _logger.LogInformation("Extracted {FileName} to {Destination}", sourceFileName, download.DestinationPath);
+        }
+        else
+        {
+            // For non-ZIP files (exe, msi, etc.), move to destination
+            var destFile = Path.Combine(download.DestinationPath, sourceFileName);
             File.Move(download.TempFilePath, destFile, true);
 
-            InstallProgressChanged?.Invoke(this, new InstallProgressEventArgs(
-                download.ApplicationId, download.ApplicationName, InstallStage.Completed, 100, "Installation complete"));
+            _logger.LogInformation("Moved {FileName} to {Destination}", sourceFileName, destFile);
+        }
 
-            download.Status = DownloadStatus.Completed;
-            download.CompletedAt = DateTime.Now;
-            await _context.SaveChangesAsync();
+        InstallProgressChanged?.Invoke(this, new InstallProgressEventArgs(
+            download.ApplicationId, download.ApplicationName, InstallStage.Completed, 100, "Installation complete"));
 
-            DownloadCompleted?.Invoke(this, new DownloadCompletedEventArgs(download, true));
+        download.Status = DownloadStatus.Completed;
+        download.CompletedAt = DateTime.Now;
+        await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Download completed: {AppName}", download.ApplicationName);
-        }
-        catch (OperationCanceledException)
-        {
-            download.Status = DownloadStatus.Paused;
-            await _context.SaveChangesAsync();
-            _logger.LogInformation("Download paused: {AppName}", download.ApplicationName);
-        }
-        catch (Exception ex)
-        {
-            await MarkDownloadFailed(download, ex.Message);
-        }
-        finally
-        {
-            _downloadTokens.TryRemove(download.Id, out _);
-            _downloadSemaphore.Release();
-        }
+        DownloadCompleted?.Invoke(this, new DownloadCompletedEventArgs(download, true));
+
+        _logger.LogInformation("Download completed: {AppName}", download.ApplicationName);
     }
 
     private async Task MarkDownloadFailed(Download download, string error)

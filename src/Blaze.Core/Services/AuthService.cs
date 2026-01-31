@@ -42,14 +42,20 @@ public class AuthService : IAuthService
         {
             var passwordHash = HashPassword(password);
 
-            // For this demo, we'll just create/retrieve a local user
+            // Find user by username
             var user = await _context.Users
                 .FirstOrDefaultAsync(u => u.Username.ToLower() == username.ToLower());
 
             if (user == null)
             {
-                // Auto-create user for demo purposes
-                return await RegisterAsync(username, $"{username}@local", password);
+                return AuthResult.Failed("Invalid username or password", AuthErrorCode.InvalidCredentials);
+            }
+
+            // Verify password
+            if (user.PasswordHash != passwordHash)
+            {
+                _logger.LogWarning("Invalid password attempt for user {Username}", username);
+                return AuthResult.Failed("Invalid username or password", AuthErrorCode.InvalidCredentials);
             }
 
             _currentUser = user;
@@ -83,10 +89,22 @@ public class AuthService : IAuthService
                 return AuthResult.Failed("Username already exists", AuthErrorCode.UserAlreadyExists);
             }
 
+            // Check if email is already registered
+            var existingEmail = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
+
+            if (existingEmail != null)
+            {
+                return AuthResult.Failed("Email already registered", AuthErrorCode.UserAlreadyExists);
+            }
+
+            var passwordHash = HashPassword(password);
+
             var user = new User
             {
                 Username = username,
                 Email = email,
+                PasswordHash = passwordHash,
                 DisplayName = username,
                 CreatedAt = DateTime.UtcNow,
                 LastLoginAt = DateTime.UtcNow,
@@ -108,7 +126,9 @@ public class AuthService : IAuthService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Registration failed for user {Username}", username);
-            return AuthResult.Failed("An error occurred during registration", AuthErrorCode.Unknown);
+            // Include more detail for debugging
+            var errorMessage = ex.InnerException?.Message ?? ex.Message;
+            return AuthResult.Failed($"Registration failed: {errorMessage}", AuthErrorCode.Unknown);
         }
     }
 
@@ -192,11 +212,22 @@ public class AuthService : IAuthService
         }
     }
 
-    public Task<bool> ChangePasswordAsync(string currentPassword, string newPassword)
+    public async Task<bool> ChangePasswordAsync(string currentPassword, string newPassword)
     {
-        // For demo purposes, always succeeds
-        _logger.LogInformation("Password changed for user {Username}", _currentUser?.Username);
-        return Task.FromResult(true);
+        if (_currentUser == null) return false;
+
+        var currentHash = HashPassword(currentPassword);
+        if (_currentUser.PasswordHash != currentHash)
+        {
+            _logger.LogWarning("Invalid current password for user {Username}", _currentUser.Username);
+            return false;
+        }
+
+        _currentUser.PasswordHash = HashPassword(newPassword);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Password changed for user {Username}", _currentUser.Username);
+        return true;
     }
 
     public async Task<bool> UpdateAvatarAsync(string avatarPath)

@@ -15,29 +15,23 @@ public class BlazeDbContext : DbContext
     public DbSet<Review> Reviews { get; set; } = null!;
     public DbSet<User> Users { get; set; } = null!;
 
-    private readonly string _dbPath;
+    private readonly string _connectionString;
 
     public BlazeDbContext()
     {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var blazeFolder = Path.Combine(appData, "Blaze");
-        Directory.CreateDirectory(blazeFolder);
-        _dbPath = Path.Combine(blazeFolder, "blaze.db");
+        _connectionString = "Server=localhost;Database=BlazeDb;Trusted_Connection=True;TrustServerCertificate=True;";
     }
 
     public BlazeDbContext(DbContextOptions<BlazeDbContext> options) : base(options)
     {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var blazeFolder = Path.Combine(appData, "Blaze");
-        Directory.CreateDirectory(blazeFolder);
-        _dbPath = Path.Combine(blazeFolder, "blaze.db");
+        _connectionString = "Server=localhost;Database=BlazeDb;Trusted_Connection=True;TrustServerCertificate=True;";
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
         {
-            optionsBuilder.UseSqlite($"Data Source={_dbPath}");
+            optionsBuilder.UseSqlServer(_connectionString);
         }
     }
 
@@ -108,12 +102,5 @@ public class BlazeDbContext : DbContext
             entity.Ignore(e => e.Preferences);
         });
 
-        // Seed initial categories
-        modelBuilder.Entity<Category>().HasData(StandardCategories.All);
-    }
-
-    public async Task EnsureCreatedAsync()
-    {
-        await Database.EnsureCreatedAsync();
     }
 }

@@ -37,6 +37,9 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private string _searchQuery = string.Empty;
 
+    [ObservableProperty]
+    private bool _isAdmin;
+
     public ObservableCollection<Download> ActiveDownloads { get; } = new();
 
     public MainViewModel(
@@ -67,6 +70,7 @@ public partial class MainViewModel : ViewModelBase
             {
                 CurrentUser = _authService.CurrentUser;
                 IsLoggedIn = true;
+                IsAdmin = CurrentUser?.IsAdmin ?? false;
             }
 
             // Load counts
