@@ -43,6 +43,8 @@ public partial class StorePage : Page
 
     private async void SortComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (_viewModel == null) return;
+
         if (SortComboBox.SelectedItem is ComboBoxItem item)
         {
             await _viewModel.ChangeSortOrderCommand.ExecuteAsync(item.Content?.ToString() ?? "Popular");

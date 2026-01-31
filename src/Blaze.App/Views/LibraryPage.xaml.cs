@@ -118,6 +118,8 @@ public partial class LibraryPage : Page
 
     private void SortComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (_viewModel == null) return;
+
         if (SortComboBox.SelectedItem is ComboBoxItem item)
         {
             _viewModel.ChangeSortOrderCommand.Execute(item.Content?.ToString() ?? "Name");
@@ -126,6 +128,8 @@ public partial class LibraryPage : Page
 
     private void FilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (_viewModel == null) return;
+
         if (FilterComboBox.SelectedItem is ComboBoxItem item)
         {
             _viewModel.ChangeFilterCommand.Execute(item.Content?.ToString() ?? "All");
