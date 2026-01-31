@@ -1,0 +1,261 @@
+<Page x:Class="Blaze.App.Views.StorePage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d"
+      Title="Store"
+      Background="{StaticResource BackgroundDarkestBrush}">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="24">
+
+            <!-- Featured Section -->
+            <TextBlock Text="Featured Apps"
+                       Style="{StaticResource HeaderStyle}"
+                       Margin="0,0,0,16"/>
+
+            <ItemsControl x:Name="FeaturedApps">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource AppCardStyle}"
+                                MouseLeftButtonDown="AppCard_Click"
+                                Tag="{Binding Id}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="130"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- App Image Placeholder -->
+                                <Border Grid.Row="0"
+                                        Background="{StaticResource BackgroundMediumBrush}"
+                                        CornerRadius="4,4,0,0">
+                                    <TextBlock Text="{Binding Name}"
+                                               FontSize="24"
+                                               FontWeight="Bold"
+                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"/>
+                                </Border>
+
+                                <!-- App Name -->
+                                <TextBlock Grid.Row="1"
+                                           Text="{Binding Name}"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           Margin="12,12,12,4"
+                                           TextTrimming="CharacterEllipsis"/>
+
+                                <!-- Developer -->
+                                <TextBlock Grid.Row="2"
+                                           Text="{Binding Developer}"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           FontSize="12"
+                                           Margin="12,0,12,4"/>
+
+                                <!-- Price/Info -->
+                                <Grid Grid.Row="3" Margin="12,4,12,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Rating, StringFormat={}{0:F1}}"
+                                                   Foreground="{StaticResource AccentSecondaryBrush}"
+                                                   FontSize="12"/>
+                                        <TextBlock Text=" / 5"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="12"/>
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding IsFree, Converter={StaticResource BoolToFreeTextConverter}}"
+                                               Foreground="{StaticResource SuccessBrush}"
+                                               FontWeight="SemiBold"
+                                               FontSize="12"/>
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- Popular Apps Section -->
+            <TextBlock Text="Popular Apps"
+                       Style="{StaticResource HeaderStyle}"
+                       Margin="0,32,0,16"/>
+
+            <ItemsControl x:Name="PopularApps">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource AppCardStyle}"
+                                MouseLeftButtonDown="AppCard_Click"
+                                Tag="{Binding Id}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="130"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <Border Grid.Row="0"
+                                        Background="{StaticResource BackgroundMediumBrush}"
+                                        CornerRadius="4,4,0,0">
+                                    <TextBlock Text="{Binding Name, Converter={StaticResource FirstLetterConverter}}"
+                                               FontSize="48"
+                                               FontWeight="Bold"
+                                               Foreground="{StaticResource AccentSecondaryBrush}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                </Border>
+
+                                <TextBlock Grid.Row="1"
+                                           Text="{Binding Name}"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           Margin="12,12,12,4"
+                                           TextTrimming="CharacterEllipsis"/>
+
+                                <TextBlock Grid.Row="2"
+                                           Text="{Binding ShortDescription}"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           FontSize="12"
+                                           Margin="12,0,12,4"
+                                           TextTrimming="CharacterEllipsis"
+                                           MaxHeight="32"/>
+
+                                <Grid Grid.Row="3" Margin="12,4,12,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0"
+                                               Text="{Binding SizeFormatted}"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="11"/>
+
+                                    <TextBlock Grid.Column="1"
+                                               Text="Free"
+                                               Foreground="{StaticResource SuccessBrush}"
+                                               FontWeight="SemiBold"
+                                               FontSize="12"/>
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- All Apps Section -->
+            <Grid Margin="0,32,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="All Apps"
+                           Style="{StaticResource HeaderStyle}"/>
+
+                <ComboBox Grid.Column="1"
+                          x:Name="SortComboBox"
+                          Style="{StaticResource BlazeComboBoxStyle}"
+                          Width="150"
+                          SelectionChanged="SortComboBox_SelectionChanged">
+                    <ComboBoxItem Content="Popular" IsSelected="True"/>
+                    <ComboBoxItem Content="New Releases"/>
+                    <ComboBoxItem Content="Name A-Z"/>
+                    <ComboBoxItem Content="Name Z-A"/>
+                    <ComboBoxItem Content="Rating"/>
+                </ComboBox>
+            </Grid>
+
+            <ItemsControl x:Name="AllApps">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource AppCardStyle}"
+                                MouseLeftButtonDown="AppCard_Click"
+                                Tag="{Binding Id}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="130"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <Border Grid.Row="0"
+                                        Background="{StaticResource BackgroundMediumBrush}"
+                                        CornerRadius="4,4,0,0">
+                                    <TextBlock Text="{Binding Name, Converter={StaticResource FirstLetterConverter}}"
+                                               FontSize="48"
+                                               FontWeight="Bold"
+                                               Foreground="{StaticResource AccentSecondaryBrush}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                </Border>
+
+                                <TextBlock Grid.Row="1"
+                                           Text="{Binding Name}"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           Margin="12,12,12,4"
+                                           TextTrimming="CharacterEllipsis"/>
+
+                                <TextBlock Grid.Row="2"
+                                           Text="{Binding Developer}"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           FontSize="12"
+                                           Margin="12,0,12,4"/>
+
+                                <Grid Grid.Row="3" Margin="12,4,12,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Rating, StringFormat={}{0:F1}}"
+                                                   Foreground="{StaticResource AccentSecondaryBrush}"
+                                                   FontSize="12"/>
+                                        <TextBlock Text=" stars"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="12"/>
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="1"
+                                               Text="Free"
+                                               Foreground="{StaticResource SuccessBrush}"
+                                               FontWeight="SemiBold"
+                                               FontSize="12"/>
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>

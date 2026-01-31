@@ -1,0 +1,318 @@
+<Page x:Class="Blaze.App.Views.SettingsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d"
+      Title="Settings"
+      Background="{StaticResource BackgroundDarkestBrush}">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="24" MaxWidth="800">
+
+            <TextBlock Text="Settings"
+                       Style="{StaticResource HeaderStyle}"
+                       Margin="0,0,0,24"/>
+
+            <!-- General Section -->
+            <Border Background="{StaticResource SurfaceBrush}"
+                    CornerRadius="4"
+                    Padding="24"
+                    Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="General"
+                               Style="{StaticResource SubheaderStyle}"
+                               Margin="0,0,0,16"/>
+
+                    <CheckBox Content="Run Blaze on Windows startup"
+                              Style="{StaticResource BlazeCheckBoxStyle}"
+                              IsChecked="{Binding RunOnStartup}"
+                              Margin="0,0,0,12"/>
+
+                    <CheckBox Content="Start minimized"
+                              Style="{StaticResource BlazeCheckBoxStyle}"
+                              IsChecked="{Binding StartMinimized}"
+                              Margin="0,0,0,12"/>
+
+                    <CheckBox Content="Minimize to system tray"
+                              Style="{StaticResource BlazeCheckBoxStyle}"
+                              IsChecked="{Binding MinimizeToTray}"
+                              Margin="0,0,0,12"/>
+
+                    <CheckBox Content="Close to system tray"
+                              Style="{StaticResource BlazeCheckBoxStyle}"
+                              IsChecked="{Binding CloseToTray}"
+                              Margin="0,0,0,12"/>
+
+                    <CheckBox Content="Check for updates automatically"
+                              Style="{StaticResource BlazeCheckBoxStyle}"
+                              IsChecked="{Binding CheckForUpdatesAutomatically}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Downloads Section -->
+            <Border Background="{StaticResource SurfaceBrush}"
+                    CornerRadius="4"
+                    Padding="24"
+                    Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Downloads"
+                               Style="{StaticResource SubheaderStyle}"
+                               Margin="0,0,0,16"/>
+
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0"
+                                   Text="Default install location"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   VerticalAlignment="Center"/>
+
+                        <TextBox Grid.Column="1"
+                                 Style="{StaticResource SearchTextBoxStyle}"
+                                 Text="{Binding DefaultInstallLocation}"
+                                 Margin="0,0,8,0"/>
+
+                        <Button Grid.Column="2"
+                                Content="Browse"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Click="BrowseFolder_Click"/>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0"
+                                   Text="Max concurrent downloads"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   VerticalAlignment="Center"/>
+
+                        <ComboBox Grid.Column="1"
+                                  Style="{StaticResource BlazeComboBoxStyle}"
+                                  Width="100"
+                                  HorizontalAlignment="Left"
+                                  SelectedIndex="{Binding MaxConcurrentDownloads, Converter={StaticResource IntToIndexConverter}}">
+                            <ComboBoxItem Content="1"/>
+                            <ComboBoxItem Content="2"/>
+                            <ComboBoxItem Content="3"/>
+                            <ComboBoxItem Content="4"/>
+                            <ComboBoxItem Content="5"/>
+                        </ComboBox>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0"
+                                   Text="Speed limit (0 = unlimited)"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   VerticalAlignment="Center"/>
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <TextBox Style="{StaticResource SearchTextBoxStyle}"
+                                     Text="{Binding SpeedLimitMbps}"
+                                     Width="100"/>
+                            <TextBlock Text=" MB/s"
+                                       Foreground="{StaticResource TextMutedBrush}"
+                                       VerticalAlignment="Center"
+                                       Margin="8,0,0,0"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <CheckBox Content="Automatically install after download"
+                              Style="{StaticResource BlazeCheckBoxStyle}"
+                              IsChecked="{Binding AutoInstallAfterDownload}"
+                              Margin="0,0,0,12"/>
+
+                    <CheckBox Content="Verify download integrity"
+                              Style="{StaticResource BlazeCheckBoxStyle}"
+                              IsChecked="{Binding VerifyDownloads}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Notifications Section -->
+            <Border Background="{StaticResource SurfaceBrush}"
+                    CornerRadius="4"
+                    Padding="24"
+                    Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Notifications"
+                               Style="{StaticResource SubheaderStyle}"
+                               Margin="0,0,0,16"/>
+
+                    <CheckBox Content="Enable notifications"
+                              Style="{StaticResource BlazeCheckBoxStyle}"
+                              IsChecked="{Binding EnableNotifications}"
+                              Margin="0,0,0,12"/>
+
+                    <CheckBox Content="Notify when download completes"
+                              Style="{StaticResource BlazeCheckBoxStyle}"
+                              IsChecked="{Binding NotifyOnDownloadComplete}"
+                              Margin="0,0,0,12"/>
+
+                    <CheckBox Content="Notify when updates are available"
+                              Style="{StaticResource BlazeCheckBoxStyle}"
+                              IsChecked="{Binding NotifyOnUpdateAvailable}"
+                              Margin="0,0,0,12"/>
+
+                    <CheckBox Content="Play notification sounds"
+                              Style="{StaticResource BlazeCheckBoxStyle}"
+                              IsChecked="{Binding PlaySounds}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Interface Section -->
+            <Border Background="{StaticResource SurfaceBrush}"
+                    CornerRadius="4"
+                    Padding="24"
+                    Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Interface"
+                               Style="{StaticResource SubheaderStyle}"
+                               Margin="0,0,0,16"/>
+
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0"
+                                   Text="Theme"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   VerticalAlignment="Center"/>
+
+                        <ComboBox Grid.Column="1"
+                                  Style="{StaticResource BlazeComboBoxStyle}"
+                                  Width="150"
+                                  HorizontalAlignment="Left">
+                            <ComboBoxItem Content="Dark" IsSelected="True"/>
+                            <ComboBoxItem Content="Light"/>
+                            <ComboBoxItem Content="System"/>
+                        </ComboBox>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0"
+                                   Text="Default library view"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   VerticalAlignment="Center"/>
+
+                        <ComboBox Grid.Column="1"
+                                  Style="{StaticResource BlazeComboBoxStyle}"
+                                  Width="150"
+                                  HorizontalAlignment="Left">
+                            <ComboBoxItem Content="Grid" IsSelected="True"/>
+                            <ComboBoxItem Content="List"/>
+                            <ComboBoxItem Content="Details"/>
+                        </ComboBox>
+                    </Grid>
+
+                    <CheckBox Content="Show animations"
+                              Style="{StaticResource BlazeCheckBoxStyle}"
+                              IsChecked="{Binding ShowAnimations}"
+                              Margin="0,0,0,12"/>
+
+                    <CheckBox Content="Compact mode"
+                              Style="{StaticResource BlazeCheckBoxStyle}"
+                              IsChecked="{Binding CompactMode}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Library Section -->
+            <Border Background="{StaticResource SurfaceBrush}"
+                    CornerRadius="4"
+                    Padding="24"
+                    Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Library"
+                               Style="{StaticResource SubheaderStyle}"
+                               Margin="0,0,0,16"/>
+
+                    <CheckBox Content="Track application usage time"
+                              Style="{StaticResource BlazeCheckBoxStyle}"
+                              IsChecked="{Binding TrackUsageTime}"
+                              Margin="0,0,0,12"/>
+
+                    <CheckBox Content="Create desktop shortcuts"
+                              Style="{StaticResource BlazeCheckBoxStyle}"
+                              IsChecked="{Binding CreateDesktopShortcuts}"
+                              Margin="0,0,0,12"/>
+
+                    <CheckBox Content="Create Start Menu shortcuts"
+                              Style="{StaticResource BlazeCheckBoxStyle}"
+                              IsChecked="{Binding CreateStartMenuShortcuts}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Actions -->
+            <Grid Margin="0,8,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="1"
+                        Content="Reset to Defaults"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Margin="0,0,8,0"
+                        Click="ResetDefaults_Click"/>
+
+                <Button Grid.Column="2"
+                        Content="Save Settings"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Click="SaveSettings_Click"/>
+            </Grid>
+
+            <!-- About Section -->
+            <Border Background="{StaticResource SurfaceBrush}"
+                    CornerRadius="4"
+                    Padding="24"
+                    Margin="0,24,0,0">
+                <StackPanel>
+                    <TextBlock Text="About Blaze"
+                               Style="{StaticResource SubheaderStyle}"
+                               Margin="0,0,0,16"/>
+
+                    <TextBlock Text="Blaze - Windows App Store"
+                               Foreground="{StaticResource TextPrimaryBrush}"
+                               FontWeight="SemiBold"/>
+                    <TextBlock Text="Version 1.0.0"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               Margin="0,4,0,0"/>
+                    <TextBlock Text="A Steam-like application store for Windows applications."
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Margin="0,8,0,0"
+                               TextWrapping="Wrap"/>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                        <Button Content="Open Data Folder"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Margin="0,0,8,0"
+                                Click="OpenDataFolder_Click"/>
+                        <Button Content="Clear Cache"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Click="ClearCache_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>

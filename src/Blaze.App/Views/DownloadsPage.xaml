@@ -1,0 +1,245 @@
+<Page x:Class="Blaze.App.Views.DownloadsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d"
+      Title="Downloads"
+      Background="{StaticResource BackgroundDarkestBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0"
+                Background="{StaticResource BackgroundDarkBrush}"
+                Padding="24,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Downloads"
+                               Style="{StaticResource HeaderStyle}"/>
+                    <TextBlock x:Name="SpeedText"
+                               Text="0 B/s"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="12"
+                               Margin="0,4,0,0"/>
+                </StackPanel>
+
+                <Button Grid.Column="1"
+                        x:Name="PauseResumeButton"
+                        Content="Pause All"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Margin="0,0,8,0"
+                        Click="PauseResumeAll_Click"/>
+
+                <Button Grid.Column="2"
+                        Content="Clear Completed"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Click="ClearCompleted_Click"/>
+            </Grid>
+        </Border>
+
+        <!-- Content -->
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="24">
+
+                <!-- Active Downloads -->
+                <TextBlock Text="Active Downloads"
+                           Style="{StaticResource SubheaderStyle}"
+                           Margin="0,0,0,16"/>
+
+                <ItemsControl x:Name="ActiveDownloadsList">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{StaticResource SurfaceBrush}"
+                                    CornerRadius="4"
+                                    Margin="0,0,0,8"
+                                    Padding="16">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Info Row -->
+                                    <Grid Grid.Row="0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{Binding ApplicationName}"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                                       FontSize="15"/>
+                                            <TextBlock Foreground="{StaticResource TextMutedBrush}" FontSize="12">
+                                                <Run Text="{Binding ProgressFormatted}"/>
+                                                <Run Text=" • "/>
+                                                <Run Text="{Binding SpeedFormatted}"/>
+                                                <Run Text=" • "/>
+                                                <Run Text="{Binding TimeRemainingFormatted}"/>
+                                            </TextBlock>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                            <Button Content="Pause"
+                                                    Style="{StaticResource SecondaryButtonStyle}"
+                                                    Padding="12,6"
+                                                    Margin="0,0,8,0"
+                                                    Click="PauseDownload_Click"
+                                                    Tag="{Binding Id}"
+                                                    Visibility="{Binding IsActive, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                            <Button Content="Resume"
+                                                    Style="{StaticResource PrimaryButtonStyle}"
+                                                    Padding="12,6"
+                                                    Margin="0,0,8,0"
+                                                    Click="ResumeDownload_Click"
+                                                    Tag="{Binding Id}"
+                                                    Visibility="{Binding IsPaused, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                            <Button Content="Cancel"
+                                                    Style="{StaticResource SecondaryButtonStyle}"
+                                                    Padding="12,6"
+                                                    Click="CancelDownload_Click"
+                                                    Tag="{Binding Id}"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Progress Bar -->
+                                    <Grid Grid.Row="1" Margin="0,12,0,0">
+                                        <Border Background="{StaticResource BackgroundDarkBrush}"
+                                                CornerRadius="3"
+                                                Height="6"/>
+                                        <Border Background="{StaticResource AccentPrimaryBrush}"
+                                                CornerRadius="3"
+                                                Height="6"
+                                                HorizontalAlignment="Left"
+                                                Width="{Binding Progress, Converter={StaticResource PercentToWidthConverter}, ConverterParameter=700}"/>
+                                    </Grid>
+
+                                    <!-- Size Info -->
+                                    <Grid Grid.Row="2" Margin="0,8,0,0">
+                                        <TextBlock HorizontalAlignment="Left"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="11">
+                                            <Run Text="{Binding DownloadedBytes, Converter={StaticResource BytesToSizeConverter}}"/>
+                                            <Run Text=" / "/>
+                                            <Run Text="{Binding TotalBytes, Converter={StaticResource BytesToSizeConverter}}"/>
+                                        </TextBlock>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Empty Active State -->
+                <Border x:Name="EmptyActiveState"
+                        Background="{StaticResource SurfaceBrush}"
+                        CornerRadius="4"
+                        Padding="24"
+                        Visibility="Collapsed">
+                    <TextBlock Text="No active downloads"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               HorizontalAlignment="Center"/>
+                </Border>
+
+                <!-- Queued Downloads -->
+                <TextBlock Text="Queued"
+                           Style="{StaticResource SubheaderStyle}"
+                           Margin="0,24,0,16"/>
+
+                <ItemsControl x:Name="QueuedDownloadsList">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{StaticResource SurfaceBrush}"
+                                    CornerRadius="4"
+                                    Margin="0,0,0,8"
+                                    Padding="16">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding ApplicationName}"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                                        <TextBlock Text="{Binding TotalBytes, Converter={StaticResource BytesToSizeConverter}}"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="12"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <TextBlock Text="Waiting..."
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   VerticalAlignment="Center"
+                                                   Margin="0,0,16,0"/>
+                                        <Button Content="Cancel"
+                                                Style="{StaticResource SecondaryButtonStyle}"
+                                                Padding="12,6"
+                                                Click="CancelDownload_Click"
+                                                Tag="{Binding Id}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Completed Downloads -->
+                <TextBlock Text="Completed"
+                           Style="{StaticResource SubheaderStyle}"
+                           Margin="0,24,0,16"/>
+
+                <ItemsControl x:Name="CompletedDownloadsList">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{StaticResource SurfaceBrush}"
+                                    CornerRadius="4"
+                                    Margin="0,0,0,8"
+                                    Padding="16">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding ApplicationName}"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                                        <TextBlock Foreground="{StaticResource TextMutedBrush}" FontSize="12">
+                                            <Run Text="Completed "/>
+                                            <Run Text="{Binding CompletedAt, Converter={StaticResource RelativeDateConverter}}"/>
+                                        </TextBlock>
+                                    </StackPanel>
+
+                                    <Border Grid.Column="1"
+                                            Background="{StaticResource SuccessBrush}"
+                                            CornerRadius="4"
+                                            Padding="12,6">
+                                        <TextBlock Text="Installed" Foreground="White" FontSize="12"/>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

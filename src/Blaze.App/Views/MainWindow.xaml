@@ -1,0 +1,163 @@
+<Window x:Class="Blaze.App.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="clr-namespace:Blaze.App.Views"
+        mc:Ignorable="d"
+        Title="Blaze - Windows App Store"
+        Height="800" Width="1280"
+        MinHeight="600" MinWidth="900"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BackgroundDarkestBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Header Bar -->
+        <Border Grid.Row="0" Grid.ColumnSpan="2"
+                Background="{StaticResource BackgroundDarkBrush}"
+                BorderBrush="{StaticResource BorderDarkBrush}"
+                BorderThickness="0,0,0,1">
+            <Grid Margin="16,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Logo -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="BLAZE"
+                               FontSize="22"
+                               FontWeight="Bold"
+                               Foreground="{StaticResource AccentPrimaryBrush}"/>
+                </StackPanel>
+
+                <!-- Search Box -->
+                <TextBox x:Name="SearchBox"
+                         Grid.Column="1"
+                         Margin="40,0"
+                         MaxWidth="500"
+                         Style="{StaticResource SearchTextBoxStyle}"
+                         Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
+                         KeyDown="SearchBox_KeyDown"/>
+
+                <!-- User Info -->
+                <StackPanel Grid.Column="2"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            Margin="0,0,16,0">
+                    <TextBlock Text="Downloads: "
+                               Foreground="{StaticResource TextMutedBrush}"
+                               VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding ActiveDownloadsCount}"
+                               Foreground="{StaticResource TextPrimaryBrush}"
+                               VerticalAlignment="Center"
+                               Margin="0,0,20,0"/>
+                </StackPanel>
+
+                <!-- User Profile -->
+                <Border Grid.Column="3"
+                        Background="{StaticResource SurfaceBrush}"
+                        CornerRadius="4"
+                        Padding="12,6"
+                        Cursor="Hand">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="28" Height="28" Fill="{StaticResource AccentPrimaryBrush}"/>
+                        <TextBlock Text="{Binding CurrentUser.DisplayName, FallbackValue='Guest'}"
+                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                   VerticalAlignment="Center"
+                                   Margin="10,0,0,0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Sidebar Navigation -->
+        <Border Grid.Row="1" Grid.Column="0"
+                Background="{StaticResource BackgroundDarkBrush}"
+                BorderBrush="{StaticResource BorderDarkBrush}"
+                BorderThickness="0,0,1,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Navigation Menu -->
+                <StackPanel Grid.Row="0" Margin="0,16,0,0">
+                    <TextBlock Text="MENU"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="11"
+                               Margin="16,0,0,10"/>
+
+                    <Button x:Name="StoreButton"
+                            Content="Store"
+                            Style="{StaticResource NavButtonStyle}"
+                            Click="NavigateToStore_Click"/>
+
+                    <Button x:Name="LibraryButton"
+                            Content="Library"
+                            Style="{StaticResource NavButtonStyle}"
+                            Click="NavigateToLibrary_Click"/>
+
+                    <Button x:Name="DownloadsButton"
+                            Style="{StaticResource NavButtonStyle}"
+                            Click="NavigateToDownloads_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Downloads"/>
+                            <Border Background="{StaticResource AccentPrimaryBrush}"
+                                    CornerRadius="10"
+                                    Padding="8,2"
+                                    Margin="10,0,0,0"
+                                    Visibility="{Binding ActiveDownloadsCount, Converter={StaticResource IntToVisibilityConverter}}">
+                                <TextBlock Text="{Binding ActiveDownloadsCount}"
+                                           FontSize="11"
+                                           Foreground="White"/>
+                            </Border>
+                        </StackPanel>
+                    </Button>
+
+                    <Separator Background="{StaticResource BorderDarkBrush}" Margin="16,20"/>
+
+                    <TextBlock Text="CATEGORIES"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="11"
+                               Margin="16,0,0,10"/>
+
+                    <Button Content="All Apps" Style="{StaticResource NavButtonStyle}" Tag="all"/>
+                    <Button Content="Productivity" Style="{StaticResource NavButtonStyle}" Tag="productivity"/>
+                    <Button Content="Development" Style="{StaticResource NavButtonStyle}" Tag="development"/>
+                    <Button Content="Graphics" Style="{StaticResource NavButtonStyle}" Tag="graphics"/>
+                    <Button Content="Multimedia" Style="{StaticResource NavButtonStyle}" Tag="multimedia"/>
+                    <Button Content="Utilities" Style="{StaticResource NavButtonStyle}" Tag="utilities"/>
+                    <Button Content="Internet" Style="{StaticResource NavButtonStyle}" Tag="internet"/>
+                    <Button Content="Security" Style="{StaticResource NavButtonStyle}" Tag="security"/>
+                </StackPanel>
+
+                <!-- Settings Button -->
+                <Button Grid.Row="1"
+                        Content="Settings"
+                        Style="{StaticResource NavButtonStyle}"
+                        Click="NavigateToSettings_Click"
+                        Margin="0,0,0,16"/>
+            </Grid>
+        </Border>
+
+        <!-- Main Content Area -->
+        <Border Grid.Row="1" Grid.Column="1"
+                Background="{StaticResource BackgroundDarkestBrush}">
+            <Frame x:Name="MainFrame"
+                   NavigationUIVisibility="Hidden"/>
+        </Border>
+    </Grid>
+</Window>
